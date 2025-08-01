@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reprogramar Entrega | PackExpress</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="formulario" style="max-width: 600px; margin: auto; padding: 2rem;">
+    <h1 style="text-align: center; color: #ff6d00;">Reprogramar Entrega</h1>
+    <form action="#" method="post" onsubmit="mostrarAlerta(event)">
+      <!-- El campo oculto se puede dejar como ejemplo estático -->
+      <input type="hidden" name="id" value="12345" />
+      
+      <label for="fecha">Nueva fecha:</label><br>
+      <input type="date" id="fecha" name="fecha" required style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"><br>
+      
+      <button type="submit" style="background-color: #ff6d00; color: white; border: none; padding: 0.6rem 1.2rem;">Actualizar</button>
+    </form>
+  </main>
+
+  <footer style="text-align: center; margin-top: 3rem; padding: 1rem; background-color: #f9f9f9;">
+    <p>&copy; 2025 PackExpress | Tu pedido en tus manos</p>
+  </footer>
+
+  <script>
+    function mostrarAlerta(event) {
+      event.preventDefault();
+      const fecha = document.getElementById('fecha').value;
+      if (fecha) {
+        alert("Entrega reprogramada para: " + fecha);
+      } else {
+        alert("Por favor selecciona una fecha.");
+      }
+    }
+  </script>
+</body>
+</html>

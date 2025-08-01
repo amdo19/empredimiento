@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulario: Enviar un Paquete</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header style="padding: 1rem 2rem; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="/images/logoexpress.jpg" alt="Logo" style="height: 40px;">
+    <h1 style="color: #ff6d00; font-size: 1.5rem;">PackExpress</h1>
+  </div>
+  <nav>
+    <a href="dashboard.html" style="margin-right: 1rem; text-decoration: none; color: #333;">Inicio</a>
+    <a href="servicios.html" style="margin-right: 1rem; text-decoration: none; color: #333;">Servicios</a>
+  </nav>
+</header>
+
+<main>
+  <form id="form-pedido">
+    <section class="form-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; padding: 2rem;">
+      <div class="form-column" style="flex: 1; min-width: 300px; margin-right: 1rem;">
+        <h3>Datos del remitente</h3>
+        <input type="text" name="remitenteNombre" placeholder="Nombre" required style="display: block; width: 100%; margin-bottom: 0.5rem;">
+        <input type="tel" name="remitenteTelefono" placeholder="Teléfono" required style="display: block; width: 100%; margin-bottom: 0.5rem;">
+        <label>¿Deseas asegurar el paquete?</label><br>
+        <input type="checkbox" name="asegurar"> No<br><br>
+        <button type="button" class="btn" style="background-color: #ccc; padding: 0.5rem 1rem; border: none;">Calcular tarifa</button>
+      </div>
+
+      <div class="form-column" style="flex: 1; min-width: 300px;">
+        <h3>Datos del destinatario</h3>
+        <input type="text" name="destinatarioNombre" placeholder="Nombre" required style="display: block; width: 100%; margin-bottom: 0.5rem;">
+        <input type="tel" name="destinatarioTelefono" placeholder="Teléfono" required style="display: block; width: 100%; margin-bottom: 0.5rem;">
+        <label>¿Deseas reprogramar la entrega luego?</label><br>
+        <input type="checkbox" name="reprogramar"> No<br><br>
+        <button type="submit" class="btn" style="background-color: #ff6d00; color: white; padding: 0.5rem 1rem; border: none;">Confirmar envío</button>
+      </div>
+    </section>
+  </form>
+</main>
+
+<br>
+<a href="dashboard.html" class="btn" style="background-color: #ff6d00; color: white; padding: 0.6rem 1.2rem; display: inline-block; margin-left: 2rem; text-decoration: none;">🏠 Volver al inicio</a>
+
+<script>
+  document.getElementById("form-pedido").addEventListener("submit", function(event) {
+    event.preventDefault();
+    alert("Envío confirmado correctamente.");
+    this.reset();
+  });
+</script>
+
+</body>
+</html>
