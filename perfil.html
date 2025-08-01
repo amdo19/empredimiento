@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Perfil - Historial de Pedidos</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="css/style.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -92,7 +92,7 @@
 
 <header class="header-principal">
   <div class="logo-box">
-    <img th:src="@{/images/logoexpress.jpg}" alt="Logo" style="height: 40px;">
+    <img th:src="images/logoexpress.jpg" alt="Logo" style="height: 40px;">
     <h1 style="color: #ff6d00; font-size: 1.5rem;">PackExpress</h1>
   </div>
   <nav>
@@ -119,13 +119,14 @@
     <p><strong>Fecha entrega:</strong> <span th:text="${pedido.fechaEntrega}"></span></p>
 
     <div class="pedido-acciones">
-      <a th:href="@{'/seguimiento?id=' + ${pedido.id}}">📍 Ver seguimiento</a>
-      <a th:href="@{'/pedido/reprogramar?id=' + ${pedido.id}}">📅 Reprogramar</a>
-      <a th:href="@{'/pedido/calificar?id=' + ${pedido.id}}">⭐ Calificar</a>
+      <a th:href="seguimiento_pedido.html">📍 Ver seguimiento</a>
+      <a th:href="pedido_reprogramar.html">📅 Reprogramar</a>
+      <a th:href="calificar.html">⭐ Calificar</a>
     </div>
   </div>
 </main>
 
 </body>
 </html>
+
 
