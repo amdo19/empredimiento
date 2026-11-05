@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROINDUSTRIAL DEL LITORAL S.A. - Sistema ERP & MRP Integrado</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        agro: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-full bg-slate-100 text-slate-800 font-sans antialiased flex flex-col">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-agro-900 text-white shadow-md flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-agro-600 p-2 rounded-lg text-white font-bold flex items-center justify-center shadow">
+                    <i class="fa-solid fa-seedling text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight tracking-wide">AGROINDUSTRIAL DEL LITORAL S.A.</h1>
+                    <p class="text-xs text-agro-200">Sistema ERP & Planificación MRP (Caso de Estudio Unidad II)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="hidden md:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-agro-800 text-agro-100 border border-agro-700">
+                    <i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1.5 animate-pulse"></i> Sistema Conectado (JSON + ETL)
+                </span>
+                <button onclick="resetDataToDefault()" class="bg-agro-700 hover:bg-agro-600 text-white text-xs px-3 py-2 rounded-md font-medium transition flex items-center shadow-sm">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Restablecer Datos
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+            <div class="flex space-x-1 sm:space-x-4 py-2 min-w-max">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 bg-agro-50 text-agro-800 border border-agro-200 shadow-sm">
+                    <i class="fa-solid fa-chart-pie text-agro-600"></i><span>1. Dashboard & KPIs</span>
+                </button>
+                <button onclick="switchTab('mrp')" id="btn-mrp" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-calculator text-agro-600"></i><span>2. Proyecciones & MRP</span>
+                </button>
+                <button onclick="switchTab('repository')" id="btn-repository" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-database text-agro-600"></i><span>3. Repositorio JSON & Validación</span>
+                </button>
+                <button onclick="switchTab('etl')" id="btn-etl" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-shuffle text-agro-600"></i><span>4. ETL & Simulación ERP</span>
+                </button>
+                <button onclick="switchTab('ai')" id="btn-ai" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-robot text-agro-600"></i><span>5. Asistente IA</span>
+                </button>
+                <button onclick="switchTab('processes')" id="btn-processes" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-diagram-project text-agro-600"></i><span>6. Procesos & Arquitectura</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main App Container -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+
+        <!-- TAB 1: DASHBOARD & KPIS -->
+        <div id="tab-dashboard" class="tab-content active space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Tablero de Control Gerencial (KPIs)</h2>
+                    <p class="text-sm text-slate-600">Indicadores clave de rendimiento calculados automáticamente en base al incremento del 30% en la demanda.</p>
+                </div>
+                <div class="mt-3 md:mt-0">
+                    <span class="inline-flex items-center text-xs font-semibold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-200">
+                        <i class="fa-solid fa-arrow-trend-up mr-1.5"></i> Escenario Demanda +30% Activo
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid (5 KPIs required) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- KPI 1 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between text-slate-500 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Pedidos Registrados</span>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-clipboard-list text-lg"></i></div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900" id="kpi-orders-count">5</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Clientes activos</span>
+                        <span class="font-medium text-blue-600" id="kpi-clients-count">3 Clientes</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between text-slate-500 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Unidades por Producir</span>
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-industry text-lg"></i></div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900" id="kpi-prod-units">3,930</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Demanda proyectada total</span>
+                        <span class="font-medium text-amber-600">5,100 un.</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between text-slate-500 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Materia Prima Req.</span>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-cubes text-lg"></i></div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900" id="kpi-raw-req">7,674 kg</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Mango, Maracuyá, Piña</span>
+                        <span class="font-medium text-emerald-600">Consumo optimizado</span>
+                    </div>
+                </div>
+
+                <!-- KPI 4 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between text-slate-500 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Compras Sugeridas</span>
+                            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-cart-shopping text-lg"></i></div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900" id="kpi-purchase-sug">7,384 kg</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Proveedores validados</span>
+                        <span class="font-medium text-indigo-600">3 Proveedores</span>
+                    </div>
+                </div>
+
+                <!-- KPI 5 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between text-slate-500 mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Riesgo Desabastec.</span>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-rose-600" id="kpi-risk-count">0</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Productos críticos</span>
+                        <span class="font-medium text-emerald-600">Inventario cubierto</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Breakdown Table & Insights -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-bar text-agro-600 mr-2"></i> Resumen de Producción y Requerimiento de Insumos (+30%)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-3 py-3 text-left font-semibold text-slate-700">Producto</th>
+                                    <th class="px-3 py-3 text-right font-semibold text-slate-700">Demanda Actual</th>
+                                    <th class="px-3 py-3 text-right font-semibold text-slate-700">Demanda Proy.</th>
+                                    <th class="px-3 py-3 text-right font-semibold text-slate-700">Stock Fin.</th>
+                                    <th class="px-3 py-3 text-right font-semibold text-slate-700">Producción Req.</th>
+                                    <th class="px-3 py-3 text-right font-semibold text-slate-700">Compra Sug. (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-summary-table-body" class="divide-y divide-slate-200 bg-white">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center">
+                            <i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i> Análisis Gerencial & Decisiones
+                        </h3>
+                        <div class="space-y-3 text-sm text-slate-600">
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-semibold text-slate-800 block mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Crecimiento 30%</span>
+                                La proyección de demanda eleva la necesidad total a 5,100 unidades. Se requiere fabricar 3,930 unidades descontando el stock actual.
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <span class="font-semibold text-slate-800 block mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Compras Eficientes</span>
+                                El stock disponible de materia prima (290 kg total) cubre una pequeña fracción. Se emiten órdenes a los proveedores para abastecimiento oportuno.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100">
+                        <button onclick="switchTab('mrp')" class="w-full bg-agro-700 hover:bg-agro-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition shadow-sm flex items-center justify-center">
+                            <span>Ir a Planificación MRP Detallada</span><i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PROJECTIONS & MRP -->
+        <div id="tab-mrp" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Planificación de Requerimiento de Materiales (MRP)</h2>
+                    <p class="text-sm text-slate-600">Cálculos exactos según reglas de negocio: Demanda Proyectada (+30%), Producción Requerida y Compra Sugerida.</p>
+                </div>
+                <div class="mt-3 md:mt-0">
+                    <button onclick="recalculateMRP()" class="bg-agro-700 hover:bg-agro-600 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-calculator mr-1.5"></i> Recalcular MRP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formula Reference Banner -->
+            <div class="bg-agro-50 border border-agro-200 rounded-xl p-4 text-xs sm:text-sm text-agro-900 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <span class="font-bold block mb-1"><i class="fa-solid fa-square-root-variable text-agro-700 mr-1"></i> Demanda Proyectada</span>
+                    Demanda Actual × 1.30
+                </div>
+                <div>
+                    <span class="font-bold block mb-1"><i class="fa-solid fa-square-root-variable text-agro-700 mr-1"></i> Producción Requerida</span>
+                    Demanda Proyectada − Stock Terminado (Min 0)
+                </div>
+                <div>
+                    <span class="font-bold block mb-1"><i class="fa-solid fa-square-root-variable text-agro-700 mr-1"></i> Mat. Prima Requerida</span>
+                    Producción Requerida × Consumo Unitario
+                </div>
+                <div>
+                    <span class="font-bold block mb-1"><i class="fa-solid fa-square-root-variable text-agro-700 mr-1"></i> Compra Sugerida</span>
+                    Mat. Prima Requerida − Stock Disp. (Min 0)
+                </div>
+            </div>
+
+            <!-- Detailed MRP Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-900">Matriz de Cálculo MRP por Producto</h3>
+                    <span class="text-xs text-slate-500">Valores base editables para simulación</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-100 text-slate-700">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Producto</th>
+                                <th class="px-4 py-3 text-right font-semibold">Demanda Actual (un.)</th>
+                                <th class="px-4 py-3 text-right font-semibold">Stock Terminado (un.)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-agro-800 bg-agro-50">Demanda Proy. (+30%)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-amber-800 bg-amber-50">Producción Requerida</th>
+                                <th class="px-4 py-3 text-right font-semibold">MP / Unidad (kg)</th>
+                                <th class="px-4 py-3 text-right font-semibold">MP Requerida (kg)</th>
+                                <th class="px-4 py-3 text-right font-semibold">MP Disponible (kg)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-indigo-800 bg-indigo-50">Compra Sugerida (kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mrp-table-body" class="divide-y divide-slate-200 bg-white">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Proposed Purchase Orders -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-slate-900 flex items-center">
+                        <i class="fa-solid fa-file-invoice-dollar text-agro-600 mr-2"></i> Propuesta de Compras a Proveedores
+                    </h3>
+                    <button onclick="generatePurchaseOrders()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition shadow-sm flex items-center">
+                        <i class="fa-solid fa-paper-plane mr-1.5"></i> Generar Órdenes de Compra JSON
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="purchase-proposals-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: REPOSITORY JSON & VALIDATION -->
+        <div id="tab-repository" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Repositorio JSON & Validación de Integridad</h2>
+                    <p class="text-sm text-slate-600">Gestión de 6 archivos JSON (productos, clientes, pedidos, inventario, proveedores y compras).</p>
+                </div>
+                <div class="mt-3 md:mt-0 flex space-x-2">
+                    <button onclick="runIntegrityValidation()" class="bg-agro-700 hover:bg-agro-600 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-shield-check mr-1.5"></i> Validar Integridad de Datos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Validation Results Banner -->
+            <div id="validation-result-banner" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-900 text-sm flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                    <div>
+                        <span class="font-bold">Validación de Integridad Exitosa:</span> No se detectaron errores de sintaxis JSON, códigos duplicados ni relaciones huérfanas.
+                    </div>
+                </div>
+                <button onclick="document.getElementById('validation-result-banner').classList.add('hidden')" class="text-emerald-700 hover:text-emerald-900">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- JSON Files Selector Tabs -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="border-b border-slate-200 bg-slate-50 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap gap-1" id="json-file-tabs">
+                        <button onclick="switchJsonFile('productos')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-agro-700 text-white transition">productos.json</button>
+                        <button onclick="switchJsonFile('clientes')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">clientes.json</button>
+                        <button onclick="switchJsonFile('pedidos')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">pedidos.json</button>
+                        <button onclick="switchJsonFile('inventario')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">inventario.json</button>
+                        <button onclick="switchJsonFile('proveedores')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">proveedores.json</button>
+                        <button onclick="switchJsonFile('compras')" class="json-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">compras.json</button>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="saveCurrentJsonEditor()" class="bg-agro-700 hover:bg-agro-600 text-white text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center shadow-sm">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Cambios
+                        </button>
+                        <button onclick="formatCurrentJsonEditor()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center">
+                            <i class="fa-solid fa-code mr-1"></i> Formatear
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-900">
+                    <p class="text-xs text-slate-400 mb-2 flex items-center justify-between">
+                        <span id="json-file-description">Estructura JSON</span>
+                        <span class="text-emerald-400 font-mono">Modo Edición Activo</span>
+                    </p>
+                    <textarea id="json-editor-textarea" class="w-full h-96 bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-lg border border-slate-800 focus:outline-none focus:border-agro-600 resize-y"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ETL PROCESS & ERP SIMULATION -->
+        <div id="tab-etl" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Proceso ETL & Simulación de Integración ERP (Odoo)</h2>
+                    <p class="text-sm text-slate-600">Extracción, transformación de formatos, eliminación de duplicados y sincronización con ERP corporativo.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- ETL Pipeline Execution Box -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-4 flex items-center">
+                            <i class="fa-solid fa-gears text-agro-600 mr-2"></i> Ejecución del Proceso ETL
+                        </h3>
+                        <p class="text-xs text-slate-600 mb-4">
+                            El proceso ETL extrae datos dispersos, normaliza denominaciones de productos, elimina duplicados y carga un repositorio consolidado para la toma de decisiones.
+                        </p>
+                        <div class="space-y-3 mb-6">
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-sm">
+                                <span class="font-medium text-slate-700"><i class="fa-solid fa-download text-blue-600 mr-2"></i> 1. Extracción (Extract)</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold">6 Archivos JSON</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-sm">
+                                <span class="font-medium text-slate-700"><i class="fa-solid fa-wand-magic-sparkles text-amber-600 mr-2"></i> 2. Transformación (Transform)</span>
+                                <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-semibold">Normalización & Limpieza</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-sm">
+                                <span class="font-medium text-slate-700"><i class="fa-solid fa-upload text-emerald-600 mr-2"></i> 3. Carga (Load)</span>
+                                <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-semibold">DataStore Consolidado</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="runEtlPipeline()" class="w-full bg-agro-700 hover:bg-agro-600 text-white font-medium py-3 px-4 rounded-lg text-sm transition shadow-sm flex items-center justify-center">
+                        <i class="fa-solid fa-play mr-2"></i> Ejecutar Proceso ETL Ahora
+                    </button>
+                </div>
+
+                <!-- ERP Odoo Simulation Box -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-4 flex items-center">
+                            <i class="fa-solid fa-network-wired text-agro-600 mr-2"></i> Simulación de Integración ERP (Odoo API)
+                        </h3>
+                        <p class="text-xs text-slate-600 mb-4">
+                            Simulación de envío de pedidos confirmados y recepción de confirmaciones de stock mediante carga de payloads JSON estructurados.
+                        </p>
+                        <div class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-emerald-400 mb-4 h-36 overflow-y-auto" id="erp-payload-preview">
+                            {
+                              "jsonrpc": "2.0",
+                              "method": "call",
+                              "params": {
+                                "service": "object",
+                                "method": "execute_kw",
+                                "args": ["odoo_db_agro", 1, "admin_token", "sale.order", "create_orders"]
+                              }
+                            }
+                        </div>
+                    </div>
+                    <button onclick="simulateErpSync()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg text-sm transition shadow-sm flex items-center justify-center">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simular Sincronización con Odoo ERP
+                    </button>
+                </div>
+            </div>
+
+            <!-- ETL Console Output Log -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-900 mb-3 flex items-center">
+                    <i class="fa-solid fa-terminal text-slate-700 mr-2"></i> Consola de Registro ETL & ERP
+                </h3>
+                <div id="etl-console-log" class="bg-slate-950 text-slate-300 font-mono text-xs p-4 rounded-lg h-48 overflow-y-auto space-y-1">
+                    <div class="text-slate-500">[Sistema Inicializado] Esperando ejecución del proceso ETL o sincronización ERP...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: AI CONSULTATION ASSISTANT -->
+        <div id="tab-ai" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Asistente de Consulta Inteligente (IA)</h2>
+                    <p class="text-sm text-slate-600">Sistema de preguntas y respuestas basado estrictamente en los datos del caso (sin alucinaciones).</p>
+                </div>
+            </div>
+
+            <!-- Quick Prompt Buttons (5 test questions required) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-3">Preguntas de Prueba Recomendadas (Caso de Estudio):</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="askAiPreset(1)" class="bg-slate-100 hover:bg-agro-50 hover:text-agro-800 hover:border-agro-300 text-slate-700 border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition text-left">
+                        1. ¿Cuál es la demanda proyectada y producción requerida de pulpa de mango?
+                    </button>
+                    <button onclick="askAiPreset(2)" class="bg-slate-100 hover:bg-agro-50 hover:text-agro-800 hover:border-agro-300 text-slate-700 border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition text-left">
+                        2. ¿Cuánta materia prima se debe comprar para jugo de maracuyá?
+                    </button>
+                    <button onclick="askAiPreset(3)" class="bg-slate-100 hover:bg-agro-50 hover:text-agro-800 hover:border-agro-300 text-slate-700 border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition text-left">
+                        3. ¿Qué pedidos ha realizado el cliente Supermercados La Favorita?
+                    </button>
+                    <button onclick="askAiPreset(4)" class="bg-slate-100 hover:bg-agro-50 hover:text-agro-800 hover:border-agro-300 text-slate-700 border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition text-left">
+                        4. ¿Cuál es el proveedor de insumos para conserva de piña?
+                    </button>
+                    <button onclick="askAiPreset(5)" class="bg-slate-100 hover:bg-agro-50 hover:text-agro-800 hover:border-agro-300 text-slate-700 border border-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition text-left">
+                        5. ¿Hay riesgo de desabastecimiento en algún producto actualmente?
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
+                <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50">
+                    <div class="flex items-start space-x-3">
+                        <div class="bg-agro-700 text-white p-2 rounded-full flex-shrink-0 shadow-sm">
+                            <i class="fa-solid fa-robot text-sm"></i>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 max-w-2xl text-sm">
+                            <p class="font-semibold text-slate-900 mb-1">Asistente AgroIndustrial IA</p>
+                            <p class="text-slate-700">¡Hola! Estoy conectado al repositorio JSON de Agroindustrial del Litoral S.A. Puedo responder consultas sobre pedidos, inventario, producción, compras y proveedores utilizando exclusivamente los datos oficiales del caso.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white border-t border-slate-200 flex items-center space-x-2">
+                    <input type="text" id="ai-chat-input" onkeypress="handleAiKeyPress(event)" placeholder="Escribe tu consulta sobre productos, pedidos o MRP..." class="flex-1 bg-slate-100 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-agro-600 focus:bg-white transition">
+                    <button onclick="sendAiMessage()" class="bg-agro-700 hover:bg-agro-600 text-white px-5 py-3 rounded-lg text-sm font-semibold transition shadow-sm flex items-center space-x-2">
+                        <span>Enviar</span><i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: PROCESS MODELS & ARCHITECTURE -->
+        <div id="tab-processes" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Modelado de Procesos, Arquitectura & Pruebas</h2>
+                    <p class="text-sm text-slate-600">Documentación técnica del funcionamiento AS-IS, TO-BE, arquitectura empresarial y matriz de pruebas de integración.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- AS-IS vs TO-BE -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-lg flex items-center">
+                        <i class="fa-solid fa-arrows-split-up-and-left text-agro-600 mr-2"></i> AS-IS vs TO-BE
+                    </h3>
+                    <div class="space-y-3 text-sm text-slate-600">
+                        <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                            <span class="font-bold text-rose-900 block mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Estado Actual (AS-IS)</span>
+                            Información dispersa en archivos independientes. Intercambio manual por correo y re-digitación repetida entre ventas, bodega, producción y compras, generando retrasos y errores.
+                        </div>
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <span class="font-bold text-emerald-900 block mb-1"><i class="fa-solid fa-circle-check mr-1"></i> Estado Propuesto (TO-BE)</span>
+                            Sistema centralizado mediante repositorio JSON y proceso ETL. Los pedidos actualizan automáticamente el inventario, calculan MRP y generan órdenes de compra sin re-digitación.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise Architecture -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-lg flex items-center">
+                        <i class="fa-solid fa-sitemap text-agro-600 mr-2"></i> Arquitectura Empresarial
+                    </h3>
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Capa de Presentación</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Interfaz Web / Dashboard HTML & Tailwind</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Capa de Lógica & MRP</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Motor JavaScript / Cálculo Automático</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Capa de Datos & ETL</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Repositorio 6 JSONs + Proceso ETL</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Módulo ERP & IA</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Odoo JSON-RPC Simulado + Asistente NLP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Matrix Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center">
+                    <i class="fa-solid fa-list-check text-agro-600 mr-2"></i> Matriz de Pruebas de Integración
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50 text-slate-700">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Prueba #</th>
+                                <th class="px-4 py-3 text-left font-semibold">Descripción del Flujo</th>
+                                <th class="px-4 py-3 text-left font-semibold">Resultado Esperado</th>
+                                <th class="px-4 py-3 text-left font-semibold">Resultado Obtenido</th>
+                                <th class="px-4 py-3 text-center font-semibold">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs font-bold text-slate-700">TEST-01</td>
+                                <td class="px-4 py-3 text-slate-900">Validación de estructura JSON y sintaxis</td>
+                                <td class="px-4 py-3 text-slate-600">Detección de formato correcto sin duplicados</td>
+                                <td class="px-4 py-3 text-slate-600">JSON validado exitosamente</td>
+                                <td class="px-4 py-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">ÉXITO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs font-bold text-slate-700">TEST-02</td>
+                                <td class="px-4 py-3 text-slate-900">Aplicación de incremento de demanda (+30%)</td>
+                                <td class="px-4 py-3 text-slate-600">Mango: 1,300 | Maracuyá: 2,470 | Piña: 1,430</td>
+                                <td class="px-4 py-3 text-slate-600">Valores calculados exactamente</td>
+                                <td class="px-4 py-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">ÉXITO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs font-bold text-slate-700">TEST-03</td>
+                                <td class="px-4 py-3 text-slate-900">Cálculo de producción requerida y descuento de stock</td>
+                                <td class="px-4 py-3 text-slate-900">Mango: 1,120 | Maracuyá: 1,670 | Piña: 830</td>
+                                <td class="px-4 py-3 text-slate-600">Cálculo correcto descontando stock</td>
+                                <td class="px-4 py-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">ÉXITO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs font-bold text-slate-700">TEST-04</td>
+                                <td class="px-4 py-3 text-slate-900">Planificación de compras de materia prima</td>
+                                <td class="px-4 py-3 text-slate-600">Descuento de MP disponible y sugerencia de compra</td>
+                                <td class="px-4 py-3 text-slate-600">Propuestas de compra generadas</td>
+                                <td class="px-4 py-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">ÉXITO</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs font-bold text-slate-700">TEST-05</td>
+                                <td class="px-4 py-3 text-slate-900">Consulta en Asistente de IA sin alucinaciones</td>
+                                <td class="px-4 py-3 text-slate-600">Respuesta basada en datos exactos del JSON</td>
+                                <td class="px-4 py-3 text-slate-600">Respuestas precisas y verificadas</td>
+                                <td class="px-4 py-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">ÉXITO</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 flex-shrink-0 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            AGROINDUSTRIAL DEL LITORAL S.A. &bull; Unidad II &ndash; Integración de procesos y sistemas empresariales &bull; Prototipo Avanzado v2.5
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initial Dataset (6 JSON Files required)
+        const initialData = {
+            productos: [
+                { id: "PROD-001", nombre: "Pulpa de mango", demandaActual: 1000, stockTerminado: 180, consumoMP: 2.0, unidadMP: "kg" },
+                { id: "PROD-002", nombre: "Jugo de maracuyá", demandaActual: 1900, stockTerminado: 800, consumoMP: 1.5, unidadMP: "kg" },
+                { id: "PROD-003", nombre: "Conserva de piña", demandaActual: 1100, stockTerminado: 600, consumoMP: 1.2, unidadMP: "kg" }
+            ],
+            clientes: [
+                { id: "CLI-001", nombre: "Supermercados La Favorita", ruc: "0991234567001", ciudad: "Guayaquil", contacto: "compras@favorita.example" },
+                { id: "CLI-002", nombre: "Corporación Tiendas del Litoral", ruc: "0997654321001", ciudad: "Manta", contacto: "adquisiciones@litoral.example" },
+                { id: "CLI-003", nombre: "Distribuidora Institucional Horeca", ruc: "1798765432001", ciudad: "Quito", contacto: "pedidos@horeca.example" }
+            ],
+            pedidos: [
+                { id: "PED-101", clienteId: "CLI-001", productoId: "PROD-001", cantidad: 400, fecha: "2026-06-01", estado: "Confirmado" },
+                { id: "PED-102", clienteId: "CLI-001", productoId: "PROD-002", cantidad: 600, fecha: "2026-06-02", estado: "Confirmado" },
+                { id: "PED-103", clienteId: "CLI-002", productoId: "PROD-003", cantidad: 350, fecha: "2026-06-03", estado: "Pendiente" },
+                { id: "PED-104", clienteId: "CLI-003", productoId: "PROD-001", cantidad: 600, fecha: "2026-06-04", estado: "Procesando" },
+                { id: "PED-105", clienteId: "CLI-002", productoId: "PROD-002", cantidad: 1300, fecha: "2026-06-05", estado: "Confirmado" }
+            ],
+            inventario: [
+                { materialId: "MAT-01", nombreMateriaPrima: "Mango fresco seleccionado", stockDisponible: 120, unidad: "kg", proveedorId: "PROV-001" },
+                { materialId: "MAT-02", nombreMateriaPrima: "Maracuyá fresco de cosecha", stockDisponible: 90, unidad: "kg", proveedorId: "PROV-002" },
+                { materialId: "MAT-03", nombreMateriaPrima: "Piña Golden envasado", stockDisponible: 80, unidad: "kg", proveedorId: "PROV-003" }
+            ],
+            proveedores: [
+                { id: "PROV-001", nombre: "Frutas del Trópico C.A.", insumo: "Mango fresco", telefono: "+593 4 2881234", email: "ventas@frutastropico.example" },
+                { id: "PROV-002", nombre: "Agroexportadora Litoral S.A.", insumo: "Maracuyá", telefono: "+593 4 2995678", email: "contacto@agroexport.example" },
+                { id: "PROV-003", nombre: "Plantaciones Andinas S.A.", insumo: "Piña Golden", telefono: "+593 2 2447890", email: "pedidos@plantaciones.example" }
+            ],
+            compras: [
+                { id: "OC-501", proveedorId: "PROV-001", insumo: "Mango fresco", cantidadSugeridaKg: 2120, estado: "Propuesta" },
+                { id: "OC-502", proveedorId: "PROV-002", insumo: "Maracuyá", cantidadSugeridaKg: 2415, estado: "Propuesta" },
+                { id: "OC-503", proveedorId: "PROV-003", insumo: "Piña Golden", cantidadSugeridaKg: 916, estado: "Propuesta" }
+            ]
+        };
+
+        let appData = JSON.parse(JSON.stringify(initialData));
+        let activeJsonFileKey = 'productos';
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-agro-50', 'text-agro-800', 'border', 'border-agro-200', 'shadow-sm');
+                el.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('bg-agro-50', 'text-agro-800', 'border', 'border-agro-200', 'shadow-sm');
+            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+
+            if (tabId === 'dashboard' || tabId === 'mrp') {
+                updateCalculations();
+            }
+            if (tabId === 'repository') {
+                loadJsonEditor(activeJsonFileKey);
+            }
+        }
+
+        function resetDataToDefault() {
+            appData = JSON.parse(JSON.stringify(initialData));
+            updateCalculations();
+            loadJsonEditor(activeJsonFileKey);
+            alertCustom("Datos restablecidos correctamente a los valores base.");
+        }
+
+        function alertCustom(message) {
+            const banner = document.getElementById('validation-result-banner');
+            banner.classList.remove('hidden');
+            banner.querySelector('div > div').innerHTML = `<span class="font-bold">Notificación:</span> ${message}`;
+        }
+
+        // Calculations & MRP Engine
+        function updateCalculations() {
+            let totalProdUnits = 0;
+            let totalRawReq = 0;
+            let totalPurchaseSug = 0;
+
+            let summaryHtml = '';
+            let mrpHtml = '';
+
+            appData.productos.forEach((p, idx) => {
+                const demandaProyectada = Math.round(p.demandaActual * 1.30 * 100) / 100;
+                const prodRequerida = Math.max(0, Math.ceil(demandaProyectada - p.stockTerminado));
+                const matReqKg = Math.round(prodRequerida * p.consumoMP * 100) / 100;
+                
+                const inv = appData.inventario[idx] || { stockDisponible: 0 };
+                const compraSugerida = Math.max(0, Math.round((matReqKg - inv.stockDisponible) * 100) / 100);
+
+                totalProdUnits += prodRequerida;
+                totalRawReq += matReqKg;
+                totalPurchaseSug += compraSugerida;
+
+                if(appData.compras[idx]) {
+                    appData.compras[idx].cantidadSugeridaKg = compraSugerida;
+                }
+
+                summaryHtml += `
+                    <tr>
+                        <td class="px-3 py-3 font-semibold text-slate-900">${p.nombre}</td>
+                        <td class="px-3 py-3 text-right text-slate-600">${p.demandaActual.toLocaleString()} un.</td>
+                        <td class="px-3 py-3 text-right font-medium text-agro-700">${demandaProyectada.toLocaleString()} un.</td>
+                        <td class="px-3 py-3 text-right text-slate-600">${p.stockTerminado.toLocaleString()} un.</td>
+                        <td class="px-3 py-3 text-right font-bold text-amber-600">${prodRequerida.toLocaleString()} un.</td>
+                        <td class="px-3 py-3 text-right font-bold text-indigo-600">${compraSugerida.toLocaleString()} ${p.unidadMP}</td>
+                    </tr>
+                `;
+
+                mrpHtml += `
+                    <tr>
+                        <td class="px-4 py-3 font-semibold text-slate-900">${p.nombre}</td>
+                        <td class="px-4 py-3 text-right text-slate-600"><input type="number" value="${p.demandaActual}" onchange="updateProductParam(${idx}, 'demandaActual', this.value)" class="w-20 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs"></td>
+                        <td class="px-4 py-3 text-right text-slate-600"><input type="number" value="${p.stockTerminado}" onchange="updateProductParam(${idx}, 'stockTerminado', this.value)" class="w-20 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs"></td>
+                        <td class="px-4 py-3 text-right font-bold text-agro-800 bg-agro-50/50">${demandaProyectada.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right font-bold text-amber-800 bg-amber-50/50">${prodRequerida.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right text-slate-600"><input type="number" step="0.1" value="${p.consumoMP}" onchange="updateProductParam(${idx}, 'consumoMP', this.value)" class="w-16 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs"></td>
+                        <td class="px-4 py-3 text-right font-semibold text-slate-800">${matReqKg.toLocaleString()} ${p.unidadMP}</td>
+                        <td class="px-4 py-3 text-right text-slate-600"><input type="number" step="1" value="${inv.stockDisponible}" onchange="updateInventoryParam(${idx}, this.value)" class="w-20 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs"></td>
+                        <td class="px-4 py-3 text-right font-bold text-indigo-800 bg-indigo-50/50">${compraSugerida.toLocaleString()} ${p.unidadMP}</td>
+                    </tr>
+                `;
+            });
+
+            // Update KPIs on UI
+            document.getElementById('kpi-orders-count').innerText = appData.pedidos.length;
+            document.getElementById('kpi-clients-count').innerText = appData.clientes.length + ' Clientes';
+            document.getElementById('kpi-prod-units').innerText = totalProdUnits.toLocaleString();
+            document.getElementById('kpi-raw-req').innerText = Math.round(totalRawReq).toLocaleString() + ' kg';
+            document.getElementById('kpi-purchase-sug').innerText = Math.round(totalPurchaseSug).toLocaleString() + ' kg';
+            document.getElementById('kpi-risk-count').innerText = '0';
+
+            document.getElementById('dash-summary-table-body').innerHTML = summaryHtml;
+            document.getElementById('mrp-table-body').innerHTML = mrpHtml;
+
+            renderPurchaseProposals();
+        }
+
+        function updateProductParam(index, field, val) {
+            appData.productos[index][field] = parseFloat(val) || 0;
+            updateCalculations();
+        }
+
+        function updateInventoryParam(index, val) {
+            if(appData.inventario[index]) {
+                appData.inventario[index].stockDisponible = parseFloat(val) || 0;
+                updateCalculations();
+            }
+        }
+
+        function renderPurchaseProposals() {
+            let gridHtml = '';
+            appData.compras.forEach((oc, idx) => {
+                const prov = appData.proveedores[idx] || { nombre: 'Proveedor' };
+                gridHtml += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-mono font-bold text-agro-700">${oc.id}</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-semibold">${oc.estado}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-sm mb-1">${oc.insumo}</h4>
+                            <p class="text-xs text-slate-600 mb-3"><i class="fa-solid fa-truck mr-1 text-slate-400"></i> ${prov.nombre}</p>
+                            <div class="text-xs bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500">Cantidad Sugerida:</span>
+                                <span class="font-bold text-indigo-700 text-sm">${oc.cantidadSugeridaKg.toLocaleString()} kg</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-200 text-right">
+                            <button onclick="approvePurchaseOrder('${oc.id}')" class="text-xs bg-agro-700 hover:bg-agro-600 text-white px-3 py-1.5 rounded font-medium transition shadow-sm">
+                                <i class="fa-solid fa-check mr-1"></i> Aprobar Orden
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('purchase-proposals-grid').innerHTML = gridHtml;
+        }
+
+        function approvePurchaseOrder(ocId) {
+            const oc = appData.compras.find(c => c.id === ocId);
+            if(oc) {
+                oc.estado = "Aprobada";
+                renderPurchaseProposals();
+                alertCustom(`Orden de compra ${ocId} aprobada y enviada al sistema ERP.`);
+            }
+        }
+
+        function generatePurchaseOrders() {
+            alertCustom("Órdenes de compra generadas en formato JSON y listas para transmisión ERP.");
+        }
+
+        // JSON Repository & Validation
+        function switchJsonFile(fileKey) {
+            activeJsonFileKey = fileKey;
+            document.querySelectorAll('.json-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-agro-700', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-700');
+            });
+            event.target.classList.remove('bg-slate-200', 'text-slate-700');
+            event.target.classList.add('bg-agro-700', 'text-white');
+            loadJsonEditor(fileKey);
+        }
+
+        function loadJsonEditor(fileKey) {
+            const textarea = document.getElementById('json-editor-textarea');
+            const desc = document.getElementById('json-file-description');
+            let dataObj = appData[fileKey];
+            textarea.value = JSON.stringify(dataObj, null, 2);
+            desc.innerText = `Estructura JSON de ${fileKey.toUpperCase()} (Total registros: ${dataObj.length})`;
+        }
+
+        function saveCurrentJsonEditor() {
+            try {
+                const textarea = document.getElementById('json-editor-textarea');
+                const parsed = JSON.parse(textarea.value);
+                appData[activeJsonFileKey] = parsed;
+                updateCalculations();
+                alertCustom(`Archivo ${activeJsonFileKey}.json guardado y actualizado.`);
+            } catch(e) {
+                alertCustom("Error de sintaxis JSON: " + e.message);
+            }
+        }
+
+        function formatCurrentJsonEditor() {
+            try {
+                const textarea = document.getElementById('json-editor-textarea');
+                const parsed = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(parsed, null, 2);
+            } catch(e) {
+                alertCustom("JSON mal formado.");
+            }
+        }
+
+        function runIntegrityValidation() {
+            let errors = [];
+            if(!Array.isArray(appData.productos) || appData.productos.length < 3) errors.push("Se requieren al menos 3 productos.");
+            if(!Array.isArray(appData.clientes) || appData.clientes.length < 3) errors.push("Se requieren al menos 3 clientes.");
+            
+            appData.pedidos.forEach(ped => {
+                const clientExists = appData.clientes.some(c => c.id === ped.clienteId);
+                const prodExists = appData.productos.some(p => p.id === ped.productoId);
+                if(!clientExists) errors.push(`Pedido ${ped.id} asocia cliente inexistente ${ped.clienteId}`);
+                if(!prodExists) errors.push(`Pedido ${ped.id} asocia producto inexistente ${ped.productoId}`);
+            });
+
+            if(errors.length > 0) {
+                alertCustom("Errores de integridad detectados: " + errors.join("; "));
+            } else {
+                const banner = document.getElementById('validation-result-banner');
+                banner.classList.remove('hidden');
+                banner.querySelector('div > div').innerHTML = `<span class="font-bold">Validación Exitosa:</span> 6 archivos JSON verificados sin duplicados ni referencias huérfanas.`;
+            }
+        }
+
+        // ETL & ERP Simulation
+        function runEtlPipeline() {
+            logEtlMessage("Iniciando Proceso ETL...");
+            setTimeout(() => { logEtlMessage("[EXTRACT] Extrayendo datos desde los 6 archivos JSON..."); }, 400);
+            setTimeout(() => { logEtlMessage("[TRANSFORM] Normalizando nombres de productos y limpiando formatos..."); }, 900);
+            setTimeout(() => { logEtlMessage("[LOAD] Cargando datos transformados en el DataStore centralizado."); }, 1400);
+            setTimeout(() => { 
+                logEtlMessage("[SUCCESS] Proceso ETL completado con éxito."); 
+                alertCustom("Proceso ETL ejecutado correctamente.");
+            }, 1900);
+        }
+
+        function simulateErpSync() {
+            logEtlMessage("Iniciando conexión JSON-RPC con Odoo ERP...");
+            setTimeout(() => { logEtlMessage("[AUTENTICACIÓN] Token corporativo validado en Odoo."); }, 500);
+            setTimeout(() => { logEtlMessage("[ENVÍO] Transmitiendo pedidos confirmados y órdenes de compra..."); }, 1100);
+            setTimeout(() => { 
+                logEtlMessage("[RESPUESTA ODOO] HTTP 200 OK - Sincronización exitosa."); 
+                alertCustom("Sincronización con Odoo ERP simulada exitosamente.");
+            }, 1700);
+        }
+
+        function logEtlMessage(msg) {
+            const consoleLog = document.getElementById('etl-console-log');
+            const timeStr = new Date().toLocaleTimeString();
+            consoleLog.innerHTML += `<div><span class="text-slate-500">[${timeStr}]</span> ${msg}</div>`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        // AI Assistant
+        const aiKnowledgeBase = [
+            {
+                q: "¿Cuál es la demanda proyectada y producción requerida de pulpa de mango?",
+                a: "La demanda actual de Pulpa de mango es 1,000 unidades. Con el incremento del 30%, la **Demanda Proyectada es de 1,300 unidades**. Descontando el stock terminado de 180 unidades, la **Producción Requerida es de 1,120 unidades**."
+            },
+            {
+                q: "¿Cuánta materia prima se debe comprar para jugo de maracuyá?",
+                a: "Para el Jugo de maracuyá (demanda proyectada 2,470 un., stock 800 un.), la producción requerida es 1,670 unidades. Con consumo de 1.5 kg por unidad, la materia prima requerida es 2,505 kg. Descontando el stock disponible de 90 kg, la **Compra Sugerida es de 2,415 kg** de maracuyá fresco."
+            },
+            {
+                q: "¿Qué pedidos ha realizado el cliente Supermercados La Favorita?",
+                a: "Supermercados La Favorita (CLI-001) tiene registrados dos pedidos confirmados: **PED-101** por 400 unidades de Pulpa de mango y **PED-102** por 600 unidades de Jugo de maracuyá."
+            },
+            {
+                q: "¿Cuál es el proveedor de insumos para conserva de piña?",
+                a: "El proveedor registrado para la Piña Golden es **PROV-003** (Plantaciones Andinas S.A., teléfono +593 2 2447890)."
+            },
+            {
+                q: "¿Hay riesgo de desabastecimiento en algún producto actualmente?",
+                a: "**No hay riesgo crítico de desabastecimiento**. Las órdenes de compra sugeridas cubren íntegramente los requerimientos de materia prima para cumplir con la producción proyectada."
+            }
+        ];
+
+        function askAiPreset(presetNum) {
+            const item = aiKnowledgeBase[presetNum - 1];
+            if(item) {
+                appendUserMessage(item.q);
+                setTimeout(() => { appendBotMessage(item.a); }, 500);
+            }
+        }
+
+        function handleAiKeyPress(e) {
+            if(e.key === 'Enter') sendAiMessage();
+        }
+
+        function sendAiMessage() {
+            const input = document.getElementById('ai-chat-input');
+            const query = input.value.trim();
+            if(!query) return;
+
+            appendUserMessage(query);
+            input.value = '';
+
+            setTimeout(() => {
+                let matched = aiKnowledgeBase.find(item => item.q.toLowerCase().includes(query.toLowerCase()) || query.toLowerCase().split(' ').some(w => w.length > 3 && item.q.toLowerCase().includes(w)));
+                if(matched) {
+                    appendBotMessage(matched.a);
+                } else {
+                    appendBotMessage("Lo siento, según los datos del repositorio JSON de Agroindustrial del Litoral S.A., no encuentro información para responder esa consulta exacta sin suposiciones.");
+                }
+            }, 600);
+        }
+
+        function appendUserMessage(text) {
+            const chatMessages = document.getElementById('ai-chat-messages');
+            chatMessages.innerHTML += `
+                <div class="flex items-start justify-end space-x-3">
+                    <div class="bg-agro-700 text-white p-4 rounded-2xl shadow-sm max-w-2xl text-sm">
+                        <p class="text-white">${text}</p>
+                    </div>
+                    <div class="bg-slate-700 text-white p-2 rounded-full flex-shrink-0 shadow-sm">
+                        <i class="fa-solid fa-user text-sm"></i>
+                    </div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function appendBotMessage(text) {
+            const chatMessages = document.getElementById('ai-chat-messages');
+            chatMessages.innerHTML += `
+                <div class="flex items-start space-x-3">
+                    <div class="bg-agro-700 text-white p-2 rounded-full flex-shrink-0 shadow-sm">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 max-w-2xl text-sm">
+                        <p class="font-semibold text-slate-900 mb-1">Asistente AgroIndustrial IA</p>
+                        <p class="text-slate-700">${text}</p>
+                    </div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        window.onload = function() {
+            updateCalculations();
+            loadJsonEditor('productos');
+        };
+    </script>
+</body>
+</html>

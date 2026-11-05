@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Sport S.A. | ERP & Clientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --brand-color: #1a252f;
+            --sidebar-bg: #2c3e50;
+            --accent-color: #3498db;
+        }
+        body { 
+            background-color: var(--primary-bg); 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            color: #333;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* PANTALLA DE LOGIN */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(135deg, var(--brand-color), var(--sidebar-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Layout Sidebar */
+        .wrapper { display: none; width: 100%; align-items: stretch; min-height: 100vh; }
+        .sidebar { min-width: 250px; max-width: 250px; background: var(--sidebar-bg); color: #fff; transition: all 0.3s; display: flex; flex-direction: column;}
+        .sidebar .sidebar-header { padding: 20px; background: var(--brand-color); }
+        .sidebar ul.components { padding: 20px 0; flex-grow: 1;}
+        .sidebar ul li a { padding: 15px 20px; display: block; color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: 0.2s;}
+        .sidebar ul li a:hover, .sidebar ul li.active > a { color: #fff; background: var(--accent-color); border-left: 4px solid #fff; }
+        
+        .content { width: 100%; padding: 30px; transition: all 0.3s; }
+        
+        /* Cards & UI */
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 24px; }
+        .card-header { background: #fff; border-bottom: 1px solid #edf2f9; font-weight: 700; border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; padding: 15px 20px;}
+        .kpi-card { background: linear-gradient(135deg, #fff, #f8f9fc); border-left: 5px solid var(--accent-color); }
+        .kpi-title { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; font-weight: 700; }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: #2c3e50; }
+        
+        /* Factura SRI (RIDE) Styles */
+        .ride-container { font-family: 'Courier New', Courier, monospace; background: #fff; padding: 30px; border: 1px solid #dee2e6; border-radius: 8px; }
+        .ride-header { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; }
+        
+        #alert-container { position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 350px; }
+        .search-box { background: #f1f5f9; border: none; border-radius: 20px; padding: 0.5rem 1.2rem; outline: none; }
+        
+        /* Ocultar secciones */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #ride-impresion, #ride-impresion * { visibility: visible; }
+            #ride-impresion { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <i class="bi bi-person-bounding-box text-primary" style="font-size: 3rem;"></i>
+            <h4 class="fw-bold mt-3 mb-1">Acceso Gerencial</h4>
+            <p class="text-muted small mb-4">ERP Active Sport S.A.</p>
+            
+            <form id="formLogin">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="usuario" placeholder="Usuario" required>
+                    <label for="usuario">Usuario</label>
+                </div>
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control" id="clave" placeholder="Contraseña" required>
+                    <label for="clave">Contraseña</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">Iniciar Sesión</button>
+            </form>
+            <div id="login-error" class="text-danger mt-3 small fw-bold" style="display:none;">Usuario o clave incorrectos.</div>
+        </div>
+    </div>
+
+    <!-- ERP PRINCIPAL -->
+    <div class="wrapper" id="main-app">
+        <!-- Sidebar -->
+        <nav class="sidebar shadow-sm">
+            <div class="sidebar-header text-center">
+                <i class="bi bi-activity fs-1 text-info"></i>
+                <h5 class="mt-2 fw-bold tracking-wide">ACTIVE SPORT</h5>
+                <small class="text-white-50" id="user-role-display">Gerencia</small>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="active" onclick="switchView('dashboard', this)">
+                    <a href="#"><i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a>
+                </li>
+                <li onclick="switchView('operaciones', this)">
+                    <a href="#"><i class="bi bi-cart-plus-fill me-2"></i> Ventas y Compras</a>
+                </li>
+                <li onclick="switchView('inventario', this)">
+                    <a href="#"><i class="bi bi-box-seam-fill me-2"></i> Catálogo e Inventario</a>
+                </li>
+                <li onclick="switchView('proyecciones', this)">
+                    <a href="#"><i class="bi bi-graph-up-arrow me-2"></i> Proyecciones Dinámicas</a>
+                </li>
+            </ul>
+            <div class="p-3 mt-auto">
+                <button onclick="cerrarSesion()" class="btn btn-outline-light w-100 mb-2"><i class="bi bi-box-arrow-left me-2"></i> Salir</button>
+                <button onclick="resetearDatos()" class="btn btn-danger w-100 btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Resetear BD</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="view-section active">
+                <h3 class="fw-bold mb-4">Dashboard Gerencial</h3>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card kpi-card">
+                            <div class="card-body">
+                                <div class="kpi-title">Valor del Inventario</div>
+                                <div class="kpi-value" id="kpi-valor-inv">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card" style="border-left-color: #28a745;">
+                            <div class="card-body">
+                                <div class="kpi-title">Ventas (Unidades)</div>
+                                <div class="kpi-value" id="kpi-ventas-und">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card" style="border-left-color: #dc3545;">
+                            <div class="card-body">
+                                <div class="kpi-title">Alertas Reposición</div>
+                                <div class="kpi-value text-danger" id="kpi-alertas">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card" style="border-left-color: #ffc107;">
+                            <div class="card-body">
+                                <div class="kpi-title">Total Unidades</div>
+                                <div class="kpi-value" id="kpi-total-und">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-bar-chart-fill me-2"></i> Ventas Mensuales por Producto</div>
+                            <div class="card-body">
+                                <canvas id="ventasChart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-2"></i> Requieren Reposición</div>
+                            <ul class="list-group list-group-flush" id="lista-alertas"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: OPERACIONES -->
+            <div id="view-operaciones" class="view-section">
+                <h3 class="fw-bold mb-4">Registro de Movimientos y Facturación</h3>
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-receipt me-2"></i> Nueva Operación</div>
+                    <div class="card-body p-4 bg-light">
+                        <form id="formMovimiento" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Operación</label>
+                                <select id="tipo" class="form-select border-0 shadow-sm" required onchange="toggleFacturacion()">
+                                    <option value="venta">Venta (Facturar SRI)</option>
+                                    <option value="entrada">Ingreso (Bodega)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Producto</label>
+                                <select id="codigo" class="form-select border-0 shadow-sm" required>
+                                    <option value="" disabled selected>Seleccione producto...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Sucursal</label>
+                                <select id="ubicacion" class="form-select border-0 shadow-sm" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    <option value="local1">Local Físico 1</option>
+                                    <option value="local2">Local Físico 2</option>
+                                    <option value="virtual">Tienda Virtual</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Cantidad</label>
+                                <input type="number" id="cantidad" class="form-control border-0 shadow-sm" min="1" placeholder="Ej. 1" required>
+                            </div>
+
+                            <!-- PANEL FACTURACIÓN / CLIENTES MEJORADO -->
+                            <div class="col-md-9" id="panel-facturacion">
+                                <div class="card border border-primary shadow-sm p-3 bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="text-primary fw-bold mb-0"><i class="bi bi-person-badge-fill me-1"></i> Datos de Facturación del Cliente (SRI)</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="modo-edicion-cliente" onchange="toggleEdicionCliente()">
+                                            <label class="form-check-label small fw-bold text-muted" for="modo-edicion-cliente">Actualizar / Nuevo Datos</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-12">
+                                            <label class="form-label small fw-bold text-muted">Seleccionar Cliente Guardado:</label>
+                                            <select id="select-cliente" class="form-select form-select-sm border-primary" onchange="seleccionarClienteGuardado()">
+                                                <option value="" selected>-- Consumidor Final o Nuevo Cliente --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2" id="campos-cliente-container">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold">Cédula / RUC:</label>
+                                            <input type="text" id="cli_ruc" class="form-control form-control-sm" placeholder="Ej. 1205... o 099...">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label small fw-bold">Razón Social / Nombre:</label>
+                                            <input type="text" id="cli_nombre" class="form-control form-control-sm" placeholder="Nombre Completo o Empresa S.A.">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Correo Electrónico:</label>
+                                            <input type="email" id="cli_email" class="form-control form-control-sm" placeholder="correo@dominio.com">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Teléfono / Celular:</label>
+                                            <input type="text" id="cli_telefono" class="form-control form-control-sm" placeholder="0991234567">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label small fw-bold">Dirección Completa:</label>
+                                            <input type="text" id="cli_direccion" class="form-control form-control-sm" placeholder="Av. Principal y Calles, Babahoyo">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary btn-lg shadow-sm px-5">
+                                    <i class="bi bi-check-circle"></i> Procesar Movimiento
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: INVENTARIO -->
+            <div id="view-inventario" class="view-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Catálogo de Existencias Detallado</h3>
+                    <input type="text" id="buscador" class="search-box w-25" placeholder="Filtrar producto..." onkeyup="filtrarTabla()">
+                </div>
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="ps-4">Código</th>
+                                        <th>Producto</th>
+                                        <th class="text-end">Precio (PVP)</th>
+                                        <th class="text-center">Local 1</th>
+                                        <th class="text-center">Local 2</th>
+                                        <th class="text-center">Virtual</th>
+                                        <th class="text-center text-primary">Total</th>
+                                        <th class="text-center">Mínimo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-productos"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PROYECCIONES DINAMICAS -->
+            <div id="view-proyecciones" class="view-section">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <h3 class="fw-bold mb-0">Proyecciones Dinámicas (Gerencia)</h3>
+                    <div class="d-flex align-items-center gap-2 bg-white p-2 rounded-pill shadow-sm px-3">
+                        <label class="fw-bold text-muted small mb-0 text-nowrap"><i class="bi bi-calendar-range me-1"></i> Proyectar a (meses):</label>
+                        <input type="number" id="input-meses-proyeccion" class="form-control form-control-sm fw-bold text-primary border-primary" value="3" min="1" max="24" style="width: 80px;" oninput="actualizarProyecciones()">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <canvas id="proyeccionesChart" height="80"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                                <span><i class="bi bi-calculator-fill me-2"></i> Análisis de Necesidad de Compra</span>
+                                <span id="label-tabla-meses" class="badge bg-primary">Proyección: 3 Meses</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead class="table-secondary text-uppercase small">
+                                            <tr>
+                                                <th class="ps-4">Producto</th>
+                                                <th class="text-center">Ventas / Mes</th>
+                                                <th class="text-center text-primary fw-bold" id="th-demanda">Demanda Proyectada</th>
+                                                <th class="text-center">Stock Global Actual</th>
+                                                <th class="text-center text-danger fw-bold">Déficit (A Comprar)</th>
+                                                <th class="text-end pe-4">Presupuesto (Costo)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-proyecciones"></tbody>
+                                        <tfoot class="table-dark">
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-bold">PRESUPUESTO TOTAL SUGERIDO:</td>
+                                                <td class="text-end pe-4 fw-bold fs-5 text-warning" id="total-presupuesto-proyeccion">$0.00</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Modal Factura SRI (RIDE) -->
+    <div class="modal fade" id="modalFactura" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-pdf"></i> Comprobante Electrónico (RIDE SRI)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="ride-impresion">
+                    <div class="ride-container">
+                        <div class="row ride-header">
+                            <div class="col-md-6">
+                                <h3><strong>ACTIVE SPORT S.A.</strong></h3>
+                                <div><small>Dirección: Av. Principal y Secundaria, Babahoyo</small></div>
+                                <div><small>OBLIGADO A LLEVAR CONTABILIDAD: SÍ</small></div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h4><strong>FACTURA</strong></h4>
+                                <div>RUC: 1290000000001</div>
+                                <div>No. 001-001-000000001</div>
+                                <div class="mt-2 fw-bold text-start" style="font-size:0.75rem;">AUTORIZACIÓN:</div>
+                                <div id="fac-autorizacion" class="text-break" style="font-size:0.85rem; letter-spacing:1px;"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <table class="w-100" style="font-size: 0.9rem;">
+                                <tr>
+                                    <td width="15%"><strong>Razón Social:</strong></td><td id="fac-cliente-nombre"></td>
+                                    <td width="15%"><strong>RUC/CI:</strong></td><td id="fac-cliente-ruc"></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dirección:</strong></td><td id="fac-cliente-dir"></td>
+                                    <td><strong>Teléfono:</strong></td><td id="fac-cliente-tel"></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Correo:</strong></td><td id="fac-cliente-email"></td>
+                                    <td><strong>Fecha:</strong></td><td id="fac-fecha"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <table class="table table-bordered table-sm" style="font-size: 0.9rem;">
+                            <thead class="table-light">
+                                <tr><th>Cod</th><th>Descripción</th><th class="text-center">Cant</th><th class="text-end">P. Unit.</th><th class="text-end">Subtotal</th></tr>
+                            </thead>
+                            <tbody id="fac-detalle"></tbody>
+                        </table>
+                        <div class="row mt-3">
+                            <div class="col-md-7"><div class="border p-2" style="font-size: 0.8rem;">Email facturación: facturacion@activesport.com.ec</div></div>
+                            <div class="col-md-5">
+                                <table class="table table-sm table-bordered text-end" style="font-size: 0.9rem;">
+                                    <tr><td>SUBTOTAL 15%</td><td id="fac-subtotal">$0.00</td></tr>
+                                    <tr><td>IVA 15%</td><td id="fac-iva">$0.00</td></tr>
+                                    <tr class="table-active fw-bold"><td>TOTAL</td><td id="fac-total">$0.00</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="window.print()">Imprimir RIDE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================
+           SISTEMA DE LOGIN GERENCIAL
+           ============================ */
+        const credenciales = { usuario: 'gerente', clave: 'admin123' };
+
+        document.getElementById('formLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const u = document.getElementById('usuario').value;
+            const c = document.getElementById('clave').value;
+            if(u === credenciales.usuario && c === credenciales.clave) {
+                localStorage.setItem('erp_sesion', 'activa');
+                verificarSesion();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        });
+
+        function verificarSesion() {
+            if(localStorage.getItem('erp_sesion') === 'activa') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'flex';
+                renderizarApp();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('erp_sesion');
+            document.getElementById('formLogin').reset();
+            verificarSesion();
+        }
+
+        /* ============================
+           LÓGICA DEL ERP Y BASE DE DATOS
+           ============================ */
+        const bdInicial = [
+            {"codigo": "AS001", "nombre": "Zapatillas para correr", "precio": 45.99, "costo": 25.00, "stock_local1": 6, "stock_local2": 4, "stock_virtual": 4, "stock_minimo": 18, "ventas_mes": 46},
+            {"codigo": "AS002", "nombre": "Camiseta deportiva", "precio": 25.50, "costo": 12.00, "stock_local1": 15, "stock_local2": 13, "stock_virtual": 10, "stock_minimo": 15, "ventas_mes": 29},
+            {"codigo": "AS003", "nombre": "Balón de fútbol", "precio": 30.00, "costo": 15.00, "stock_local1": 3, "stock_local2": 4, "stock_virtual": 2, "stock_minimo": 12, "ventas_mes": 34},
+            {"codigo": "AS004", "nombre": "Mochila deportiva", "precio": 35.75, "costo": 18.00, "stock_local1": 8, "stock_local2": 10, "stock_virtual": 4, "stock_minimo": 8, "ventas_mes": 17},
+            {"codigo": "AS005", "nombre": "Pantalón de entrenamiento", "precio": 28.99, "costo": 14.50, "stock_local1": 4, "stock_local2": 5, "stock_virtual": 2, "stock_minimo": 14, "ventas_mes": 25},
+            {"codigo": "AS006", "nombre": "Guantes de gimnasio", "precio": 15.25, "costo": 7.00, "stock_local1": 11, "stock_local2": 10, "stock_virtual": 10, "stock_minimo": 10, "ventas_mes": 13}
+        ];
+
+        const clientesInicial = [
+            {"ruc": "9999999999999", "nombre": "Consumidor Final", "email": "ventas@activesport.com.ec", "telefono": "0990000000", "direccion": "Babahoyo"},
+            {"ruc": "1205998877001", "nombre": "Juan Carlos Pérez", "email": "jperez@gmail.com", "telefono": "0981234567", "direccion": "Cdla. El Maestro, Babahoyo"}
+        ];
+
+        let productos = JSON.parse(localStorage.getItem('activeSportDB_v6')) || JSON.parse(JSON.stringify(bdInicial));
+        let clientes = JSON.parse(localStorage.getItem('activeSportClientes_v6')) || JSON.parse(JSON.stringify(clientesInicial));
+        
+        let myChart = null; 
+        let projChart = null;
+
+        function getStockTotal(p) { return p.stock_local1 + p.stock_local2 + p.stock_virtual; }
+        function formatDinero(num) { return '$' + parseFloat(num).toFixed(2); }
+
+        function guardarDatos() { 
+            localStorage.setItem('activeSportDB_v6', JSON.stringify(productos)); 
+            localStorage.setItem('activeSportClientes_v6', JSON.stringify(clientes));
+        }
+
+        function resetearDatos() {
+            if(confirm("¿Restaurar la base de datos y clientes a los valores de fábrica?")) {
+                productos = JSON.parse(JSON.stringify(bdInicial));
+                clientes = JSON.parse(JSON.stringify(clientesInicial));
+                guardarDatos();
+                renderizarApp();
+                mostrarAlerta('Base de datos restaurada', 'info');
+            }
+        }
+
+        function switchView(viewId, el) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+            
+            if(viewId === 'dashboard') actualizarDashboard();
+            if(viewId === 'proyecciones') actualizarProyecciones();
+        }
+
+        function renderizarApp() {
+            renderizarSelect();
+            renderizarSelectClientes();
+            renderizarTabla();
+            actualizarDashboard();
+            actualizarProyecciones();
+            toggleEdicionCliente();
+        }
+
+        // --- GESTIÓN DE CLIENTES ---
+        function renderizarSelectClientes() {
+            const select = document.getElementById('select-cliente');
+            select.innerHTML = '<option value="" selected>-- Consumidor Final o Nuevo Cliente --</option>';
+            clientes.forEach(c => {
+                select.innerHTML += `<option value="${c.ruc}">[${c.ruc}] ${c.nombre}</option>`;
+            });
+        }
+
+        function seleccionarClienteGuardado() {
+            const rucSel = document.getElementById('select-cliente').value;
+            const swEdicion = document.getElementById('modo-edicion-cliente');
+            
+            if(!rucSel) {
+                // Limpiar campos para nuevo
+                document.getElementById('cli_ruc').value = '';
+                document.getElementById('cli_nombre').value = '';
+                document.getElementById('cli_email').value = '';
+                document.getElementById('cli_telefono').value = '';
+                document.getElementById('cli_direccion').value = '';
+                swEdicion.checked = true;
+                toggleEdicionCliente();
+                return;
+            }
+
+            const cli = clientes.find(c => c.ruc === rucSel);
+            if(cli) {
+                document.getElementById('cli_ruc').value = cli.ruc;
+                document.getElementById('cli_nombre').value = cli.nombre;
+                document.getElementById('cli_email').value = cli.email || '';
+                document.getElementById('cli_telefono').value = cli.telefono || '';
+                document.getElementById('cli_direccion').value = cli.direccion || '';
+                
+                // Por defecto, al seleccionar uno guardado, se bloquea la edición a menos que active el switch
+                swEdicion.checked = false;
+                toggleEdicionCliente();
+            }
+        }
+
+        function toggleEdicionCliente() {
+            const sw = document.getElementById('modo-edicion-cliente').checked;
+            const rucSel = document.getElementById('select-cliente').value;
+            const inputs = ['cli_ruc', 'cli_nombre', 'cli_email', 'cli_telefono', 'cli_direccion'];
+            
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                // Si no hay cliente seleccionado (es nuevo), siempre habilitado. Si hay seleccionado, depende del switch.
+                if(!rucSel || sw) {
+                    el.removeAttribute('readonly');
+                    el.classList.remove('bg-light');
+                } else {
+                    el.setAttribute('readonly', 'true');
+                    el.classList.add('bg-light');
+                }
+            });
+        }
+
+        // --- DASHBOARD ---
+        function actualizarDashboard() {
+            let tUnd=0, vInv=0, vUnd=0, altCount=0;
+            const labels=[], dataVentas=[];
+            const lista = document.getElementById('lista-alertas');
+            lista.innerHTML = '';
+
+            productos.forEach(p => {
+                const tot = getStockTotal(p);
+                tUnd += tot; vInv += (tot * p.precio); vUnd += p.ventas_mes;
+                labels.push(p.nombre); dataVentas.push(p.ventas_mes);
+
+                if (tot <= p.stock_minimo) {
+                    altCount++;
+                    lista.innerHTML += `<li class="list-group-item d-flex justify-content-between"><div><b>${p.nombre}</b></div><span class="badge bg-danger rounded-pill">${tot}</span></li>`;
+                }
+            });
+            if(altCount===0) lista.innerHTML = '<li class="list-group-item text-success text-center">Todo en orden</li>';
+
+            document.getElementById('kpi-valor-inv').innerText = formatDinero(vInv);
+            document.getElementById('kpi-total-und').innerText = tUnd;
+            document.getElementById('kpi-ventas-und').innerText = vUnd;
+            document.getElementById('kpi-alertas').innerText = altCount;
+
+            const ctx = document.getElementById('ventasChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar', data: { labels: labels, datasets: [{ label: 'Ventas Mensuales', data: dataVentas, backgroundColor: '#3498db' }] }
+            });
+        }
+
+        // --- PROYECCIONES DINAMICAS ---
+        function actualizarProyecciones() {
+            const mesesInput = document.getElementById('input-meses-proyeccion').value;
+            const meses = parseInt(mesesInput) > 0 ? parseInt(mesesInput) : 1;
+            
+            document.getElementById('label-tabla-meses').innerText = `Proyección: ${meses} Meses`;
+            document.getElementById('th-demanda').innerText = `Demanda Proyectada (${meses} Meses)`;
+
+            const tbody = document.getElementById('tabla-proyecciones');
+            tbody.innerHTML = '';
+            
+            const labels = [];
+            const dataDemanda = [];
+            const dataStock = [];
+            let presupuestoTotalGlobal = 0;
+
+            productos.forEach(p => {
+                const stockActual = getStockTotal(p);
+                const demanda = p.ventas_mes * meses;
+                const deficit = Math.max(0, demanda - stockActual);
+                const presupuesto = deficit * p.costo;
+                
+                presupuestoTotalGlobal += presupuesto;
+                labels.push(p.nombre);
+                dataDemanda.push(demanda);
+                dataStock.push(stockActual);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ps-4 fw-bold text-muted">${p.nombre}</td>
+                        <td class="text-center">${p.ventas_mes}</td>
+                        <td class="text-center text-primary fw-bold fs-5">${demanda}</td>
+                        <td class="text-center">${stockActual}</td>
+                        <td class="text-center ${deficit > 0 ? 'text-danger fw-bold' : 'text-success'}">${deficit > 0 ? deficit : 'Cubierto'}</td>
+                        <td class="text-end pe-4 fw-bold">${formatDinero(presupuesto)}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('total-presupuesto-proyeccion').innerText = formatDinero(presupuestoTotalGlobal);
+
+            const ctx = document.getElementById('proyeccionesChart').getContext('2d');
+            if(projChart) projChart.destroy();
+            projChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: `Demanda Proyectada (${meses} meses)`, data: dataDemanda, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'Stock Actual Global', data: dataStock, borderColor: '#2c3e50', backgroundColor: '#2c3e50', borderDash: [5, 5], tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, interaction: { mode: 'index', intersect: false } }
+            });
+        }
+
+        // --- OPERACIONES ---
+        function toggleFacturacion() {
+            const t = document.getElementById('tipo').value;
+            document.getElementById('panel-facturacion').style.display = t==='venta' ? 'block' : 'none';
+            document.getElementById('cli_nombre').required = t==='venta';
+            document.getElementById('cli_ruc').required = t==='venta';
+        }
+
+        function renderizarSelect() {
+            const select = document.getElementById('codigo');
+            select.innerHTML = '<option value="" disabled selected>Seleccione producto...</option>';
+            productos.forEach(p => { select.innerHTML += `<option value="${p.codigo}">[${p.codigo}] ${p.nombre} - ${formatDinero(p.precio)}</option>`; });
+        }
+
+        function renderizarTabla(filtro = '') {
+            const tbody = document.getElementById('tabla-productos');
+            tbody.innerHTML = '';
+            productos.filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase())).forEach(p => {
+                const total = getStockTotal(p);
+                const a = total <= p.stock_minimo;
+                tbody.innerHTML += `
+                    <tr class="${a ? 'table-danger' : ''}">
+                        <td class="ps-4 fw-bold text-muted">${p.codigo}</td>
+                        <td class="fw-bold">${p.nombre}</td>
+                        <td class="text-end text-success fw-bold">${formatDinero(p.precio)}</td>
+                        <td class="text-center">${p.stock_local1}</td><td class="text-center">${p.stock_local2}</td><td class="text-center">${p.stock_virtual}</td>
+                        <td class="text-center"><span class="badge ${a ? 'bg-danger' : 'bg-primary'} rounded-pill fs-6">${total}</span></td>
+                        <td class="text-center text-muted">${p.stock_minimo}</td>
+                    </tr>`;
+            });
+        }
+        function filtrarTabla() { renderizarTabla(document.getElementById('buscador').value); }
+
+        function mostrarAlerta(msg, tipo, det='') {
+            const c = document.getElementById('alert-container');
+            const id = Date.now();
+            c.innerHTML += `<div id="alerta-${id}" class="alert alert-${tipo} alert-dismissible fade show shadow"><strong>${msg}</strong><br><small>${det}</small><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            setTimeout(() => { const el = document.getElementById(`alerta-${id}`); if(el) el.remove(); }, 5000);
+        }
+
+        document.getElementById('formMovimiento').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cod = document.getElementById('codigo').value;
+            const ubi = document.getElementById('ubicacion').value;
+            const tip = document.getElementById('tipo').value;
+            const cant = parseInt(document.getElementById('cantidad').value);
+            const p = productos.find(prod => prod.codigo === cod);
+            const sKey = 'stock_' + ubi;
+
+            if (tip === 'venta') {
+                if (cant > p[sKey]) {
+                    mostrarAlerta(`Stock insuficiente en sucursal seleccionada`, 'danger', 'Revisa la pestaña de inventario.');
+                    return;
+                }
+                p[sKey] -= cant;
+                p.ventas_mes += cant;
+                
+                // Procesar datos completos del cliente
+                const cRuc = document.getElementById('cli_ruc').value.trim();
+                const cNom = document.getElementById('cli_nombre').value.trim();
+                const cEmail = document.getElementById('cli_email').value.trim();
+                const cTel = document.getElementById('cli_telefono').value.trim();
+                const cDir = document.getElementById('cli_direccion').value.trim();
+
+                // Buscar si ya existe el cliente por RUC o Cédula
+                let cliIndex = clientes.findIndex(c => c.ruc === cRuc);
+                const clienteObj = {
+                    ruc: cRuc || "9999999999999",
+                    nombre: cNom || "Consumidor Final",
+                    email: cEmail,
+                    telefono: cTel,
+                    direccion: cDir
+                };
+
+                if(cliIndex >= 0) {
+                    // Actualizar datos existentes si el cliente pidió modificación o si difieren
+                    clientes[cliIndex] = clienteObj;
+                } else {
+                    // Guardar nuevo cliente para futuras ventas
+                    clientes.push(clienteObj);
+                }
+                guardarDatos();
+                renderizarSelectClientes();
+
+                // Lógica de factura RIDE
+                const sub = p.precio * cant;
+                document.getElementById('fac-fecha').innerText = new Date().toLocaleString();
+                document.getElementById('fac-cliente-nombre').innerText = clienteObj.nombre;
+                document.getElementById('fac-cliente-ruc').innerText = clienteObj.ruc;
+                document.getElementById('fac-cliente-dir').innerText = clienteObj.direccion || 'N/D';
+                document.getElementById('fac-cliente-tel').innerText = clienteObj.telefono || 'N/D';
+                document.getElementById('fac-cliente-email').innerText = clienteObj.email || 'N/D';
+                document.getElementById('fac-autorizacion').innerText = Math.floor(Math.random() * 1e16) + "" + Math.floor(Math.random() * 1e16);
+                
+                document.getElementById('fac-detalle').innerHTML = `<tr><td>${p.codigo}</td><td>${p.nombre}</td><td class="text-center">${cant}</td><td class="text-end">${formatDinero(p.precio)}</td><td class="text-end">${formatDinero(sub)}</td></tr>`;
+                document.getElementById('fac-subtotal').innerText = formatDinero(sub);
+                document.getElementById('fac-iva').innerText = formatDinero(sub*0.15);
+                document.getElementById('fac-total').innerText = formatDinero(sub*1.15);
+                
+                new bootstrap.Modal(document.getElementById('modalFactura')).show();
+                mostrarAlerta('Venta procesada y cliente guardado/actualizado con éxito', 'success');
+            } else {
+                p[sKey] += cant;
+                mostrarAlerta('Ingreso exitoso', 'success');
+            }
+            guardarDatos();
+            renderizarApp();
+            this.reset();
+            toggleFacturacion();
+        });
+
+        // INIT
+        verificarSesion();
+        toggleFacturacion();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
